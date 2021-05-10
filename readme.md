@@ -1,7 +1,7 @@
 ## The console interface
-RCmax.exe is an executable to run the LR algorithm on an input or generated instance. (build with clang for windows)
+RCmax.exe is an executable to run the LR algorithm on an input or generated instance. (built with clang for windows)
 
-RCmax and RCmax.out are the corresponding binaries for linux systems, build with gcc and clang, respectively. 
+RCmax and RCmax.out are the corresponding binaries for linux systems, built with gcc and clang, respectively. 
 
 Invoke as: RCmax.exe path_to_instance.dat time_limit_in_seconds flag1 flag2...
 
@@ -36,3 +36,23 @@ cmake -DCMAKE_BUILD_TYPE=Release
 make
 ```
 On windows use visual studio and open as a cmake project, again prefer using the `clang compiler for windows addon`
+
+## Citing RCmax 
+
+If you find RCmax useful in your work, we kindly request that you cite the following paper:
+
+```
+@article{ablad2021rcmax,
+     author = {Edvin {\AA}blad and Domenico Spensieri and Ann-Brith Str{\"o}mberg},
+     title = {Exact makespan minimization of unrelated parallel machines},
+     journal = {Open Journal of Mathematical Optimization},
+     eid = {4},
+     publisher = {Universit\'e de Montpellier},
+     volume = {2},
+     year = {2021},
+     doi = {10.5802/ojmo.4},
+     language = {en},
+     url = {https://ojmo.centre-mersenne.org/articles/10.5802/ojmo.4/}
+}
+```
+
