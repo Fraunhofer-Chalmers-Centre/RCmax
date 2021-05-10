@@ -37,9 +37,9 @@ make
 ```
 On windows use visual studio and open as a cmake project, again prefer using the `clang compiler for windows addon`
 
-## Citing RCmax 
+## Citing the RCmax solver
 
-If you find RCmax useful in your work, we kindly request that you cite the following paper:
+If you find this RCmax solver useful in your work, we kindly request that you cite the following paper:
 
 ```
 @article{ablad2021rcmax,
