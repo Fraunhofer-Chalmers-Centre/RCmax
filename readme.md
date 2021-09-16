@@ -1,7 +1,7 @@
 ## The console interface
-RCmax.exe is an executable to run the LR algorithm on an input or generated instance. (built with clang for windows)
+RCmax.exe is an executable to run the LR algorithm on an given instance or to generate a new instance. (built with clang for windows)
 
-RCmax and RCmax.out are the corresponding binaries for linux systems, built with gcc and clang, respectively. 
+RCmax is the corresponding binary for linux systems, built with clang. 
 
 Invoke as: RCmax.exe path_to_instance.dat time_limit_in_seconds flag1 flag2...
 
