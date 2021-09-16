@@ -319,10 +319,10 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 	auto n_iter = 0;
 	while (!tree.empty())
 	{
-		++n_nodes;
 		if (std::chrono::duration<double> time = std::chrono::system_clock::now() - start; time_limit < time.count()) {
 			break;
 		}
+		++n_nodes;
 		auto& node = tree.top();
 		auto z_lb_node = node.first;
 		auto c_node = node.second.first;

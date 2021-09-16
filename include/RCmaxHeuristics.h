@@ -60,7 +60,8 @@ namespace rcmax {
 	* @param p the processing times p_ij
 	* @return the makespan
 	*/
-	int local_search_heuristic(std::vector<int>& x, const std::vector<std::vector<int>>& p);
+	template<class T>
+	T local_search_heuristic(std::vector<int>& x, const std::vector<std::vector<T>>& p);
 	
 	/**
 	* Local search heuristic, the neighbourhood is a 2-cycle, i.e.,
@@ -70,7 +71,8 @@ namespace rcmax {
 	* @param p the processing times p_ij
 	* @return the makespan
 	*/
-	int local_search_heuristic_swap(std::vector<int>& x, const std::vector<std::vector<int>>& p);
+	template<class T>
+	T local_search_heuristic_swap(std::vector<int>& x, const std::vector<std::vector<T>>& p);
 
 	/**
 	* Local search heuristic, the neighbourhood is to send two from imax and recive one in return, i.e.,
@@ -81,7 +83,8 @@ namespace rcmax {
 	* @param p the processing times p_ij
 	* @return the makespan
 	*/
-	int local_search_heuristic_swap21(std::vector<int>& x, const std::vector<std::vector<int>>& p);
+	template<class T>
+	T local_search_heuristic_swap21(std::vector<int>& x, const std::vector<std::vector<T>>& p);
 
 	/**
 	* Local search heuristic, the neighbourhood is defined by:

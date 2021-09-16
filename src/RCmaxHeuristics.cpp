@@ -123,11 +123,12 @@ void rcmax_heuristic(std::vector<int>& x, const std::vector<std::vector<bool>>& 
 	return;
 }
 
-int local_search_heuristic(std::vector<int>& x, const std::vector<std::vector<int>>& c)
+template<class T>
+T local_search_heuristic(std::vector<int>& x, const std::vector<std::vector<T>>& c)
 {
 	const auto m = c.size();
 	const auto n = c.front().size();
-	std::vector<int> z(m, 0);
+	std::vector<T> z(m, 0);
 	for (size_t j = 0; j < n; ++j) {
 		z[x[j]] += c[x[j]][j];
 	}
@@ -165,12 +166,13 @@ i.e.
 	For any j1 : i_max is machine of io_sol[j1]
 	For any j2 : i_2 (machine of k12) of io_sol[j2]
 */
-int local_search_heuristic_swap(std::vector<int>& x, const std::vector<std::vector<int>>& c)
+template<class T>
+T local_search_heuristic_swap(std::vector<int>& x, const std::vector<std::vector<T>>& c)
 {	//The neighbour hood is to swap two task, sending one from the highest contributor and reciving one in return
 	local_search_heuristic(x, c);
 	const auto m = c.size();
 	const auto n = c.front().size();
-	std::vector<int> z(m, 0);
+	std::vector<T> z(m, 0);
 	for (size_t j = 0; j < n; ++j) {
 		z[x[j]] += c[x[j]][j];
 	}
@@ -237,12 +239,13 @@ For any j1 : i_max is machine of x[j1]
 For any j2 : i_max is machine of x[j2], j2!=j1
 For any j3 : i_2 of x[j2]
 */
-int local_search_heuristic_swap21(std::vector<int>& x, const std::vector<std::vector<int>>& c)
+template<class T>
+T local_search_heuristic_swap21(std::vector<int>& x, const std::vector<std::vector<T>>& c)
 {
 	local_search_heuristic_swap(x, c);
 	const auto m = c.size();
 	const auto n = c.front().size();
-	std::vector<int> z(m, 0);
+	std::vector<T> z(m, 0);
 	for (size_t j = 0; j < n; ++j) {
 		z[x[j]] += c[x[j]][j];
 	}
@@ -323,19 +326,18 @@ int local_search_heuristic_cycle3(std::vector<int>& x, const std::vector<std::ve
 		return local_search_heuristic_swap(x, c_in);
 	}
 	local_search_heuristic_swap(x, c_in);
-
-	auto c = c_in;
-	const auto m = c.size();
-	const auto n = c.front().size();
+	const auto m = c_in.size();
+	const auto n = c_in.front().size();
+	std::vector<std::vector<long long>> c(m, std::vector<long long>(n));
 	for (size_t i = 0; i < m; ++i) {
 		for (size_t j = 0; j < n; ++j) {
-			c[i][j] = c_in[i][j] * static_cast<int>(n) * 100 + static_cast<int>(5 * (1.0 + std::sin(static_cast<double>(i) * n + j + pert_ofs)));
+			c[i][j] = c_in[i][j] * static_cast<long long>(n) * 100 + static_cast<long long>(5 * (1.0 + std::sin(static_cast<double>(i) * n + j + pert_ofs)));
 		}
 	}
 	pert_ofs += 37.0;
 
 	local_search_heuristic_swap21(x, c);
-	std::vector<int> z(m, 0);
+	std::vector<long long> z(m, 0);
 	for (size_t j = 0; j < n; ++j) {
 		z[x[j]] += c[x[j]][j];
 	}
@@ -474,7 +476,7 @@ int local_search_heuristic_cycle3(std::vector<int>& x, const std::vector<std::ve
 		z[x[j]] += c_in[x[j]][j];
 	}
 	zm = *std::max_element(z.begin(), z.end());
-	return zm;
+	return static_cast<int>(zm);
 }
 template int local_search_heuristic_cycle3<false>(std::vector<int>& , const std::vector<std::vector<int>>& , const bool,double& );
 template int local_search_heuristic_cycle3<true>(std::vector<int>&, const std::vector<std::vector<int>>&, const bool,double&);
