@@ -31,7 +31,6 @@ SOFTWARE.																	*/
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
 /*
 	A command line interface to the branch-and-bound RCmax solver 
 	use ? or help to see the usage or see readme.md
@@ -121,25 +120,25 @@ int main(int argc, char** argv)
 		std::cout << "Error: Corrput dimensions: not same number of task for each machine. "<< std::endl;
 		return 1;
 	}
-	if (m > 20 || n > 200) {
-		std::cout << "Error: Too large problem, this algorithm is only tested for m <= 20, n <= 200, m = " << m << ", n = " << n;
-		return 1;
-	}
+	//if (m > 20 || n > 200) {
+	//	std::cout << "Error: Too large problem, this algorithm is only tested for m <= 20, n <= 200, m = " << m << ", n = " << n;
+	//	return 1;
+	//}
 	if (n == 0) {
 		std::cout << "Error: No tasks found";
 		return 1;
 	}
-	if (!std::all_of(c.begin(), c.end(), [](const auto& v) {return std::all_of(v.begin(), v.end(), [](auto c) {return (c >= 1 && c <= 200) || c == 5000; }); }))
-	{
-		std::cout << "Error: Invalid processing times, assume 1 <= p_ij <= 200, use p_ij = 5000, to indicate an unavailable machine for task j." << std::endl;
-		return 1;
-	}
-	for (size_t j = 0; j < n; ++j) {
-		if (!std::any_of(c.begin(), c.end(), [j] (const auto& v) {return v[j] <= 200; })) {
-			std::cout << "Error: Task " << j + 1 << "has no available machine.";
-			return 1;
-		}
-	}
+	//if (!std::all_of(c.begin(), c.end(), [](const auto& v) {return std::all_of(v.begin(), v.end(), [](auto c) {return (c >= 1 && c <= 200) || c == 5000; }); }))
+	//{
+	//	std::cout << "Error: Invalid processing times, assume 1 <= p_ij <= 200, use p_ij = 5000, to indicate an unavailable machine for task j." << std::endl;
+	//	return 1;
+	//}
+	//for (size_t j = 0; j < n; ++j) {
+	//	if (!std::any_of(c.begin(), c.end(), [j] (const auto& v) {return v[j] <= 200; })) {
+	//		std::cout << "Error: Task " << j + 1 << "has no available machine.";
+	//		return 1;
+	//	}
+	//}
 	auto time_limit = 120.0;
 	if (argc >= 3) {
 		try {
@@ -181,15 +180,26 @@ int main(int argc, char** argv)
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> time = end - start;
 	auto solved = time.count() + 1e-6 < time_limit;
-
-	if (write_header) {
-		out << "m   n   nodes   iter     time      solved gap_root% z     x"<<std::endl;
+	if (!has_option("-o")) {
+		if (write_header) {
+			out << "m   n   nodes   iter     time      solved gap_root% z     x"<<std::endl;
+		}
+		out << std::setw(4) << std::left << m << std::setw(4) << std::left << n << std::setw(8) << std::left << nodes << std::setw(9) << std::left << iter  <<
+			std::setw(10) << std::left << time.count() << std::setw(7) << std::left << solved << std::setw(10) << std::left << 100.0*gap_root << std::setw(6) << std::left << z;
+		for (auto xv : x) {
+			out << xv +1 << " ";
+		}
+		out << std::endl;
 	}
-	out << std::setw(4) << std::left << m << std::setw(4) << std::left << n << std::setw(8) << std::left << nodes << std::setw(9) << std::left << iter  <<
-		std::setw(10) << std::left << time.count() << std::setw(7) << std::left << solved << std::setw(10) << std::left << 100.0*gap_root << std::setw(6) << std::left << z;
-	for (auto xv : x) {
-		out << xv +1 << " ";
+	else {
+		if (write_header) {
+			out << "m,n,nodes,iter,time,solved,gaproot,lbgaproot,z,x" << std::endl;
+		}
+		out << m << "," << n << "," << nodes << "," << iter << "," << time.count() << "," << solved << "," << gap_root << "," << lb_gap_root << "," << z << ",";
+		for (auto xv : x) {
+			out << xv + 1 << ",";
+		}
+		out << std::endl;
 	}
-	out << std::endl;
 	return 0;
 }
