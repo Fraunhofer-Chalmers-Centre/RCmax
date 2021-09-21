@@ -39,7 +39,7 @@ On windows use visual studio and open as a cmake project, again prefer using the
 
 ## Citing the R||Cmax solver
 
-If you find this R||Cmax solver useful in your work, we kindly request that you cite the following paper:
+If you find this R||Cmax solver useful in your work, we kindly request that you cite the following [paper](https://ojmo.centre-mersenne.org/articles/10.5802/ojmo.4/):
 
 ```
 @article{ablad2021rcmax,
