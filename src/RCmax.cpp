@@ -154,10 +154,10 @@ double step_length(const double delta, const double lb, const double ub, const d
 */
 int sub_gradmax(knapsack::SubproblemSolver& sub_solver, std::vector<std::vector<bool>>& sub_x, std::vector<double>& u, double& z_lb_frac, int& z_ub, std::vector<int>& x, const BNB_SETTINGS& settings, const bool root, std::vector<int>* x_ub, double& pert_ofs)
 {
-	
+
 	const auto& c = sub_solver.get_weights();
 	const auto m = c.size();
-	const auto n = u.size();
+	const auto n = c.front().size();
 	const auto delta_min = 1e-3;
 	auto iter_before_div = root ? 40 : 12;
 	size_t n_iter = root ? 1000 : 100;
@@ -179,8 +179,8 @@ int sub_gradmax(knapsack::SubproblemSolver& sub_solver, std::vector<std::vector<
 	for (; iter < n_iter; ++iter_since_last_div) {
 		++iter;
 		auto z_lr_lb = sub_solver.solve(sub_x, nullptr, u, z_lb);
-
-		if (z_lr_lb > z_lb_frac + 1e-6) {
+		
+		if (z_lr_lb > z_lb_frac + 1e-6) {			
 			z_lb_frac = z_lr_lb;
 			best_u = u;
 			iter_since_last_div = 0;
@@ -206,7 +206,7 @@ int sub_gradmax(knapsack::SubproblemSolver& sub_solver, std::vector<std::vector<
 		}
 
 		const auto sg_norm2 = std::transform_reduce(sg.begin(), sg.end(), 0.0, std::plus<>(), [] (const double v) { return v * v; });
-
+		
 		if (iter == 1 || !settings[idx(BNB_Features::SUB_GRAD_DEFLECTED)]) {
 			u_dir = sg;
 		}
@@ -286,7 +286,7 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 	auto start = std::chrono::system_clock::now();
 	LR1::LR1Solver lr1solver(m, n);
 	auto z_lr1 = lr1solver.solve(c);
-	
+
 	auto x = rcmax_heuristic(c);
 	auto z_ub = local_search_heuristic_cycle3<true>(x, c, settings[idx(BNB_Features::LARGE_LOCAL_SEARCH)], pert_ofs);
 	if (x_ub) {
@@ -313,7 +313,7 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 	std::priority_queue<QueueItem, std::vector<QueueItem>, std::less<QueueItem>> tree;
 	tree.emplace(QueueItem{ z_lb_frac, { c, u } });
 	bool root = true;
-	auto z_root_gap = (static_cast<double>(z_ub) - round_up(z_lb_frac)) /z_ub;
+	auto z_root_gap = (static_cast<double>(z_ub) - round_up(z_lb_frac)) / z_ub;
 	auto z_root_lb = round_up(z_lb_frac);
 	auto n_nodes = 0;
 	auto n_iter = 0;
@@ -349,44 +349,42 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 			n_iter += sub_gradmax(sub_solver, sub_x, u, z_lb_node, z_ub, x, settings, root, x_ub, pert_ofs);
 		}
 		root = false;
-
 		z_lb = round_up(z_lb_node);
 		if (z_lb >= z_ub || z_lb_node >= z_ub) {
 			continue;
 		}
-		if (verbose && 10*(++print_cnt) > std::min(n_nodes,1000) + 9) {
+		c_node = sub_solver.get_weights();
+		if (verbose && 10 * (++print_cnt) > std::min(n_nodes, 1000) + 9) {
 			print_cnt = 0;
 			std::chrono::duration<double> time = std::chrono::system_clock::now() - start;
 			std::stringstream timestr;
-			timestr<< time.count() << "s";
+			timestr << time.count() << "s";
 			std::cout << "time: " << std::setw(10) << std::left << timestr.str() << "open nodes = " << std::setw(8) << std::left << tree.size() << "closed nodes = " << std::setw(8) << std::left << n_nodes << "node bounds: " << std::setw(10) << std::right << z_lb_node << " < " << std::setw(10) << std::left << z_ub << std::endl;
 		}
-		{
-			if (settings[idx(BNB_Features::VAR_FIXING)]) {
-				auto z_lr_lb = sub_solver.solve(sub_x, &c_red, u, z_lb);
-				if (round_up(z_lr_lb) >= z_ub) {
-					continue;
-				}
-				auto c_red2 = [&sub_solver, &u, &z_lb](size_t i, size_t j, size_t s) { return sub_solver.reduced_cost(i, j, s, u, z_lb); };
-				node_reduction(c_node, c_red, c_red2, z_lr_lb, z_ub);
-				x = rcmax_heuristic(c_red);
-				auto z_lr_ub = local_search_heuristic_cycle3<true>(x, c_node, settings[idx(BNB_Features::LARGE_LOCAL_SEARCH)], pert_ofs);
-				if (z_lr_ub < z_ub && x_ub) {
-					*x_ub = x;
-				}
-				z_ub = std::min(z_ub, z_lr_ub);
-				if (z_lb >= z_ub || z_lb_node >= z_ub) {
-					continue;
-				}
+		if (settings[idx(BNB_Features::VAR_FIXING)]) {
+			auto z_lr_lb = sub_solver.solve(sub_x, &c_red, u, z_lb);
+			if (round_up(z_lr_lb) >= z_ub) {
+				continue;
 			}
-			else {
-				z_lr1 = lr1solver.solve(c_node);
-				if (round_up(z_lr1) >= z_ub) {
-					continue;
-				}
-				c_red = lr1solver.reduced_costs();
-				node_reduction(c_node, c_red, [&c_red](size_t i, size_t j, size_t s) {return c_red[i][j] + c_red[i][s]; }, z_lr1, z_ub);
+			auto c_red2 = [&sub_solver, &u, &z_lb](size_t i, size_t j, size_t s) { return sub_solver.reduced_cost(i, j, s, u, z_lb); };
+			node_reduction(c_node, c_red, c_red2, z_lr_lb, z_ub);
+			x = rcmax_heuristic(c_red);
+			auto z_lr_ub = local_search_heuristic_cycle3<true>(x, c_node, settings[idx(BNB_Features::LARGE_LOCAL_SEARCH)], pert_ofs);
+			if (z_lr_ub < z_ub && x_ub) {
+				*x_ub = x;
 			}
+			z_ub = std::min(z_ub, z_lr_ub);
+			if (z_lb >= z_ub || z_lb_node >= z_ub) {
+				continue;
+			}
+		}
+		else {
+			z_lr1 = lr1solver.solve(c_node);
+			if (round_up(z_lr1) >= z_ub) {
+				continue;
+			}
+			c_red = lr1solver.reduced_costs();
+			node_reduction(c_node, c_red, [&c_red](size_t i, size_t j, size_t s) {return c_red[i][j] + c_red[i][s]; }, z_lr1, z_ub);
 		}
 
 		std::vector<size_t> fixed_j(n, m + 1);
@@ -452,7 +450,7 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 				fixed_j[j] = ci.front().second;
 				continue;
 			}
-				
+
 			std::sort(ci.begin(), ci.end());
 			const auto z_lr_score = m - ci.size() + 20.0 * ci.front().first;
 
@@ -476,13 +474,13 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 				}
 			}
 			sub_solve_no_x.update_weights(c_left);
-			auto z_lr_left = sub_solve_no_x.solve(u, z_lb);			
+			auto z_lr_left = sub_solve_no_x.solve(u, z_lb);
 			if (round_up(z_lr_left) < z_ub) {
 				tree.emplace(std::pair<double, NodeDef>{ z_lr_left, { c_left, u } });
 			}
 			sub_solve_no_x.update_weights(c_right);
 			auto z_lr_right = sub_solve_no_x.solve(u, z_lb);
-			
+
 			if (round_up(z_lr_right) < z_ub) {
 				tree.emplace(std::pair<double, NodeDef>{ z_lr_right, { c_right, u } });
 			}
@@ -496,7 +494,7 @@ std::tuple<int, int, int, double, double> solve_bnb(const std::vector<std::vecto
 	}
 
 	z_root_gap = std::max(z_root_gap, 0.0);
-	auto z_lb_gap = (static_cast<double>(z_ub)- round_up(z_root_lb)) / z_ub;
+	auto z_lb_gap = (static_cast<double>(z_ub) - round_up(z_root_lb)) / z_ub;
 	return std::tuple(n_nodes, n_iter, z_ub, z_root_gap, std::max(z_lb_gap, 0.0));
 }
 } // namespace rcmax

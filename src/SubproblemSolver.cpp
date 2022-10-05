@@ -26,17 +26,17 @@ SOFTWARE.																	*/
 #include <algorithm>
 #include <numeric>
 namespace rcmax {
-namespace {
-	/**
-	* ceil to the nearest integer, the point of this function is to ceil in a conservative way, so that round_up(int + eps) = int, to avoid problems with finite precision 
-	*	@param v the fractional number
-	*	@return ceil(v)
-	*/
-	int round_up(const double v)
-	{
-		return static_cast<int>(v + .999999);
+	namespace {
+		/**
+		* ceil to the nearest integer, the point of this function is to ceil in a conservative way, so that round_up(int + eps) = int, to avoid problems with finite precision
+		*	@param v the fractional number
+		*	@return ceil(v)
+		*/
+		int round_up(const double v)
+		{
+			return static_cast<int>(v + .999999);
+		}
 	}
-}
 
 namespace knapsack {
 	SubproblemSolverNoSol::SubproblemSolverNoSol(const std::vector<std::vector<int>>& c, const int i_ub) :
@@ -190,7 +190,7 @@ namespace knapsack {
 		if (lb >= ub) {
 			return static_cast<double>(lb);
 		}
-		for (size_t i = 0; i < m; ++i) {
+		for (size_t i = 0; i < m; ++i) {	
 			auto& vm = value[i];
 			auto ub_i = ub - fixed_w[i];
 			for (int w = weight[i][0]; w < ub_i; ++w) {
@@ -234,12 +234,12 @@ namespace knapsack {
 		}
 
 		for (size_t i = 0; i < m; ++i) {
-			auto& vm = value[i];
+			const auto& vm = value[i];
 			auto wc = opt_w - fixed_w[i];
 			auto ub_i = ub - fixed_w[i];
 			size_t j = n - 1;
 			for (; j > 0 && (weight[i][j] >= ub_i || i == fixed_j[j]); --j) {
-				x[i][j] = i == fixed_j[j];
+				x[i][j] = i == fixed_j[j];				
 			}
 			for (size_t jp = j; jp > 0;) {
 				--jp;
@@ -254,6 +254,27 @@ namespace knapsack {
 				j = jp;
 			}
 			x[i][j] = vm[j][wc] > 0.0 || i == fixed_j[j];
+		}
+		// early cheep reduction
+		if (c_red_p == nullptr) {
+			for (size_t i = 0; i < m; ++i) {
+				auto& vm = value[i][last_j[i]];
+				for (size_t j = 0; j < n; ++j) {
+					if (weight[i][j] >= ub || fixed_j[j] < m || x[i][j]) {
+						continue;
+					}
+					bool viol = true;
+					for (auto w = std::max(lb - fixed_w[i], weight[i][j]); w < ub - fixed_w[i]; ++w) {
+						if (viol) {
+							auto c_red_z = vm[w] - vm[static_cast<size_t>(w) - weight[i][j]] - u[j] + last_opt_diff[static_cast<size_t>(w) - lb + fixed_w[i]];
+							viol = round_up(c_red_z + opt_lb) >= ub;
+						}
+					}
+					if (viol) {
+						weight[i][j] = ub + 1;
+					}
+				}
+			}
 		}
 
 		if (c_red_p != nullptr) {
@@ -344,7 +365,7 @@ namespace knapsack {
 	}
 
 	double SubproblemSolver::reduced_cost(size_t i, size_t j, size_t s, const std::vector<double>& u, int lb) const {
-
+	
 		auto& vm = value[i][last_j[i]];
 		auto c_red = std::numeric_limits<double>::infinity();
 		for (auto w = std::max(lb - fixed_w[i], weight[i][j] + weight[i][s]); w < ub - fixed_w[i]; ++w) {

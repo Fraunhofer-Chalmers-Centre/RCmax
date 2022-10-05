@@ -190,7 +190,7 @@ T local_search_heuristic_swap(std::vector<int>& x, const std::vector<std::vector
 		if (z[i1] < zi)
 			continue;
 		const auto c_from_i1 = c[i1][j1];
-		auto improvement = 0;
+		T improvement = 0;
 		auto best_j2 = n;
 		auto best_i2 = m;
 		for (size_t i2 = 0; i2 < m; ++i2) {
@@ -263,7 +263,7 @@ T local_search_heuristic_swap21(std::vector<int>& x, const std::vector<std::vect
 		const auto i1 = x[j1];
 		if (z[i1] < zm)
 			continue;
-		auto improvement = 0;
+		T improvement = 0;
 		auto best_j2 = n, best_j3 = n;
 		auto best_i2 = m;
 
@@ -355,7 +355,7 @@ int local_search_heuristic_cycle3(std::vector<int>& x, const std::vector<std::ve
 		if (z[i1] < zm)
 			continue;
 		const auto c_from_i1 = c[i1][j1];
-		auto improvement = 0;
+		long long improvement = 0;
 		auto best_i1 = m, best_i2 = m, best_i3 = m, best_i4 = m;
 		auto best_j2 = n, best_j3 = n, best_j4 = n;
 
